@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ICreditScoreOracle {
@@ -145,7 +145,7 @@ contract ChitFund is AccessControl, ReentrancyGuard {
 
         bytes32 commitHash = bidCommits[auctionId][msg.sender];
         require(commitHash != bytes32(0), "no commit");
-        bytes32 h = keccak256(abi.encodePacked(amount, secret));
+        bytes32 h = keccak256(abi.encode(amount, secret));
         require(h == commitHash, "commit mismatch");
 
         revealed[auctionId][msg.sender] = true;
@@ -218,4 +218,3 @@ contract ChitFund is AccessControl, ReentrancyGuard {
         return ret;
     }
 }
-

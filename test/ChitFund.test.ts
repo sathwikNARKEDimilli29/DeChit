@@ -17,7 +17,8 @@ async function deployAll() {
   await token.waitForDeployment();
 
   const poolSizeCap = 1_000n * SCALE; // 1000 tokens
-  const minCreditForLarge = 700n * SCALE; // 700
+  // Threshold as a fraction of 1.0 (scaled 1e18). 0.7 == 70%.
+  const minCreditForLarge = 7n * (SCALE / 10n); // 0.7e18
   const minOperatorRating = 3;
 
   const Fund = await ethers.getContractFactory("ChitFund");
@@ -45,7 +46,8 @@ describe("ChitFund", () => {
     const { admin, operator, fund } = await loadFixture(deployAll);
     await expect(fund.connect(admin).setAllowedProtocol(operator.address, true))
       .to.emit(fund, "ProtocolAllowlisted");
-    await expect(fund.connect(operator).setAllowedProtocol(operator.address, true)).to.be.revertedWith("AccessControl");
+    await expect(fund.connect(operator).setAllowedProtocol(operator.address, true))
+      .to.be.revertedWithCustomError(fund, "AccessControlUnauthorizedAccount");
   });
 
   it("creates pools and deposits premiums", async () => {
@@ -140,13 +142,15 @@ describe("ChitFund", () => {
     const secret = "s";
     const commit = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256","string"],[amount, secret]));
 
-    await expect(fund.connect(outsider).commitBid(1n, commit)).to.be.revertedWith("AccessControl");
+    await expect(fund.connect(outsider).commitBid(1n, commit))
+      .to.be.revertedWithCustomError(fund, "AccessControlUnauthorizedAccount");
 
     await fund.connect(p1).commitBid(1n, commit);
+    // Move into reveal window first
+    await time.increase(31);
     await expect(fund.connect(p1).revealBid(1n, amount, "wrong"))
       .to.be.revertedWith("commit mismatch");
 
-    await time.increase(31);
     await fund.connect(p1).revealBid(1n, amount, secret);
     await expect(fund.connect(p1).revealBid(1n, amount, secret)).to.be.reverted; // already revealed
   });

@@ -19,7 +19,8 @@ describe("CreditScoreOracle", () => {
     expect(await oracle.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true);
     expect(await oracle.hasRole(ORACLE_ROLE, deployer.address)).to.eq(true);
 
-    await expect(oracle.connect(a).setTrust(deployer.address, SCALE)).to.be.revertedWith("AccessControl");
+    await expect(oracle.connect(a).setTrust(deployer.address, SCALE))
+      .to.be.revertedWithCustomError(oracle, "AccessControlUnauthorizedAccount");
   });
 
   it("records trust and updates sums/inbound", async () => {
@@ -75,4 +76,3 @@ describe("CreditScoreOracle", () => {
     expect(prB).to.eq(SCALE - d);
   });
 });
-

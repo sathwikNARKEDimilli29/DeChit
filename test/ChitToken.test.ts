@@ -18,10 +18,10 @@ describe("ChitToken", () => {
     expect(await token.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true);
     expect(await token.hasRole(MINTER_ROLE, deployer.address)).to.eq(true);
 
-    await expect(token.connect(user).mint(user.address, 1n)).to.be.revertedWith("AccessControl");
+    await expect(token.connect(user).mint(user.address, 1n))
+      .to.be.revertedWithCustomError(token, "AccessControlUnauthorizedAccount");
 
     await expect(token.mint(user.address, 5n)).to.emit(token, "Transfer");
     expect(await token.balanceOf(user.address)).to.equal(5n);
   });
 });
-
