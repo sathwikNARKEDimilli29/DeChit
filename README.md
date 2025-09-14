@@ -23,11 +23,11 @@ Hardhat-based project with three contracts: `ChitToken`, `CreditScoreOracle`, an
 
 ## Env Vars
 - RPC/auth: `PRIVATE_KEY`, `RPC_URL`, `ETHERSCAN_API_KEY`
-- Deploy defaults: `TOKEN_NAME`, `TOKEN_SYMBOL`, `TOKEN_SUPPLY`, `POOL_SIZE_CAP`, `MIN_CREDIT_LARGE`, `MIN_OPERATOR_RATING`
+- Deploy defaults: `TOKEN_NAME`, `TOKEN_SYMBOL`, `TOKEN_SUPPLY`, `POOL_SIZE_CAP`, `MIN_CREDIT_LARGE` (scaled 1e18, default `0.70e18`), `MIN_OPERATOR_RATING`
 
 ## Notes
 - Contracts import OpenZeppelin; ensure installed: `npm i -D @openzeppelin/contracts`
-- Numbers are in 18 decimals unless noted. Use `--network localhost` or configure `.env`.
+- Numbers are in 18 decimals unless noted. Credit score thresholds are fractions scaled to `1e18` (e.g., 0.85e18 for 85%). Use `--network localhost` or configure `.env`.
 
 ## Frontend
 - Location: `frontend/`

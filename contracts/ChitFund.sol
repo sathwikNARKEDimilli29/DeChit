@@ -179,7 +179,8 @@ contract ChitFund is AccessControl, ReentrancyGuard {
         uint256 bonus = 0;
         if (a.winner != address(0) && a.highestBid > 0) {
             uint256 score = oracle.computeCreditScore(a.winner);
-            uint256 threshold = 850e18;
+            // Threshold scaled to 1e18 (0.85 * 1e18)
+            uint256 threshold = 85e16;
             if (score >= threshold) {
                 // bonus = highestBid * (score - 850e18) / 1e20
                 uint256 diff = score - threshold; // scaled 1e18

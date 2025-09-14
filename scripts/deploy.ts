@@ -13,7 +13,8 @@ async function main() {
   const tokenSupply = process.env.TOKEN_SUPPLY || (1000000n * 10n ** 18n).toString();
 
   const poolSizeCap = process.env.POOL_SIZE_CAP || (100000n * 10n ** 18n).toString();
-  const minCreditForLarge = process.env.MIN_CREDIT_LARGE || (700n * 10n ** 18n).toString();
+  // 0.70 * 1e18 by default
+  const minCreditForLarge = process.env.MIN_CREDIT_LARGE || ((10n ** 18n) * 7n / 10n).toString();
   const minOperatorRating = parseInt(process.env.MIN_OPERATOR_RATING || "3", 10);
 
   console.log("Deploying CreditScoreOracle...");
@@ -57,4 +58,3 @@ main().catch((e) => {
   console.error(e);
   process.exitCode = 1;
 });
-

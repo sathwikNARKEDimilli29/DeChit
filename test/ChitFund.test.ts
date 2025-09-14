@@ -60,6 +60,16 @@ describe("ChitFund", () => {
     await expect(
       fund.connect(operator).depositPremium(poolId, { value: ethers.parseEther("0.05") })
     ).to.emit(fund, "PremiumDeposited");
+    await expect(
+      fund.connect(operator).depositPremium(poolId, { value: 0 })
+    ).to.be.revertedWith("no value");
+  });
+
+  it("enforces pool size > 0 and rating threshold for auctions", async () => {
+    const { operator, fund } = await loadFixture(deployAll);
+    await expect(fund.connect(operator).createPool(0n, 1)).to.be.revertedWith("size=0");
+    await fund.connect(operator).createPool(10n * SCALE, 1);
+    await expect(fund.connect(operator).createAuction(1n, 60n, 60n)).to.be.revertedWith("pool.rating<min");
   });
 
   it("runs auction flow: create, commit, reveal, close (winner highest bid)", async () => {
@@ -91,7 +101,7 @@ describe("ChitFund", () => {
     await time.increase(Number(revealSecs) + 1);
 
     // Fund needs tokens to pay any potential bonus (if threshold met). For this test, bids are low so no bonus by default.
-    await expect(fund.closeAuction(1n)).to.emit(fund, "AuctionClosed");
+    await expect(fund.closeAuction(1n)).to.emit(fund, "AuctionClosed").withArgs(1n, p2.address, amount2, 0);
   });
 
   it("tie-breaks by credit score on equal bids and pays bonus if high score", async () => {
@@ -146,6 +156,9 @@ describe("ChitFund", () => {
       .to.be.revertedWithCustomError(fund, "AccessControlUnauthorizedAccount");
 
     await fund.connect(p1).commitBid(1n, commit);
+    // Cannot reveal before bid end
+    await expect(fund.connect(p1).revealBid(1n, amount, secret)).to.be.revertedWith("not in reveal");
+    // After bid end, wrong secret reverts
     // Move into reveal window first
     await time.increase(31);
     await expect(fund.connect(p1).revealBid(1n, amount, "wrong"))
@@ -153,6 +166,11 @@ describe("ChitFund", () => {
 
     await fund.connect(p1).revealBid(1n, amount, secret);
     await expect(fund.connect(p1).revealBid(1n, amount, secret)).to.be.reverted; // already revealed
+
+    // Create another auction and ensure commit after bidEnd reverts
+    await fund.connect(operator).createAuction(1n, 10n, 10n);
+    await time.increase(11);
+    await expect(fund.connect(p1).commitBid(2n, commit)).to.be.revertedWith("bidding over");
   });
 
   it("blocks large pool auctions for low-credit operators then allows after score improves", async () => {
@@ -185,6 +203,12 @@ describe("ChitFund", () => {
 
     // Now should pass
     await expect(fund.connect(operator).createAuction(1n, 30n, 30n)).to.emit(fund, "AuctionCreated");
+    // Close before reveal end should revert
+    await expect(fund.closeAuction(1n)).to.be.revertedWith("reveal ongoing");
+    await time.increase(61);
+    await fund.closeAuction(1n);
+    // Double close reverts
+    await expect(fund.closeAuction(1n)).to.be.revertedWith("already closed");
   });
 
   it("tradeTokens requires allowance and transfers via token", async () => {
@@ -197,5 +221,33 @@ describe("ChitFund", () => {
     await expect(
       fund.connect(p1).tradeTokens(p2.address, ethers.parseEther("2"))
     ).to.changeTokenBalances(token, [p1, p2], [ethers.parseEther("-2"), ethers.parseEther("2")]);
+
+    // Without allowance should fail
+    await expect(
+      fund.connect(p1).tradeTokens(p2.address, ethers.parseEther("2"))
+    ).to.be.reverted;
+  });
+
+  it("integrateWithDefi enforces allowlist and executes calls", async () => {
+    const { admin, operator, fund } = await loadFixture(deployAll);
+    const Mock = await ethers.getContractFactory("MockProtocol");
+    const mock = await Mock.deploy();
+    await mock.waitForDeployment();
+
+    const sig = "ping(uint256)";
+    const data = new ethers.Interface([`function ${sig}`]).encodeFunctionData("ping", [123]);
+
+    // Not allowlisted -> revert
+    await expect(
+      fund.connect(operator).integrateWithDefi(await mock.getAddress(), data)
+    ).to.be.revertedWith("protocol not allowed");
+
+    // Allowlist and call
+    await fund.connect(admin).setAllowedProtocol(await mock.getAddress(), true);
+    const ret = await fund.connect(operator).integrateWithDefi.staticCall(await mock.getAddress(), data);
+    // Return should be 32 bytes keccak(123)
+    const expected = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256"],[123]));
+    const decoded = ethers.AbiCoder.defaultAbiCoder().decode(["bytes32"], ret)[0];
+    expect(decoded).to.eq(expected);
   });
 });
