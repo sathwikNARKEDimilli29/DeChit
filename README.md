@@ -28,3 +28,10 @@ Hardhat-based project with three contracts: `ChitToken`, `CreditScoreOracle`, an
 ## Notes
 - Contracts import OpenZeppelin; ensure installed: `npm i -D @openzeppelin/contracts`
 - Numbers are in 18 decimals unless noted. Use `--network localhost` or configure `.env`.
+
+## Frontend
+- Location: `frontend/`
+- Install deps: `cd frontend && npm install`
+- Run dev: `npm run dev` then open printed URL
+- Set contract addresses in-app under the Addresses section (paste from `deployments/last-deploy.json`).
+- Requires MetaMask connected to your chosen network.
