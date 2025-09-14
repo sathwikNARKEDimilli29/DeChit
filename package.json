@@ -5,10 +5,11 @@
   "scripts": {
     "build": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts",
-    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost && node scripts/sync-frontend-addresses.js",
     "accounts": "hardhat accounts",
     "node": "hardhat node",
     "test": "hardhat test",
+    "sync:frontend": "node scripts/sync-frontend-addresses.js",
     "admin": "hardhat run scripts/admin.ts",
     "pool": "hardhat run scripts/pool.ts",
     "auction": "hardhat run scripts/auction.ts",
