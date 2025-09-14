@@ -1,0 +1,30 @@
+{
+  "name": "dechit-implementation",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "accounts": "hardhat accounts",
+    "node": "hardhat node",
+    "admin": "hardhat run scripts/admin.ts",
+    "pool": "hardhat run scripts/pool.ts",
+    "auction": "hardhat run scripts/auction.ts",
+    "oracle": "hardhat run scripts/oracle.ts",
+    "token": "hardhat run scripts/token.ts",
+    "trade": "hardhat run scripts/trade.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
