@@ -8,6 +8,7 @@
     "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
     "accounts": "hardhat accounts",
     "node": "hardhat node",
+    "test": "hardhat test",
     "admin": "hardhat run scripts/admin.ts",
     "pool": "hardhat run scripts/pool.ts",
     "auction": "hardhat run scripts/auction.ts",
